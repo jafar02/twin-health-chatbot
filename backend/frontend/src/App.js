@@ -7,6 +7,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
+  const chatEndRef = useRef(null);
 
   // Initialize Web Speech API
   useEffect(() => {
@@ -28,6 +29,11 @@ export default function App() {
     recognitionRef.current = recognition;
   }, []);
 
+  // Auto-scroll to latest message
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
   const startListening = () => {
     if (recognitionRef.current) {
       setListening(true);
@@ -38,7 +44,7 @@ export default function App() {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    const userMsg = { role: "user", content: input };
+    const userMsg = { role: "user", content: input, time: new Date().toLocaleTimeString() };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setLoading(true);
@@ -53,7 +59,13 @@ export default function App() {
       const data = await res.json();
 
       if (res.ok) {
-        setMessages(prev => [...prev, { role: "bot", content: data.reply }]);
+        const botMsg = { role: "bot", content: data.reply, time: new Date().toLocaleTimeString() };
+        setMessages(prev => [...prev, botMsg]);
+
+        // Voice feedback
+        const utterance = new SpeechSynthesisUtterance(data.reply);
+        utterance.lang = "en-US";
+        window.speechSynthesis.speak(utterance);
       } else {
         setError(data.error || "Something went wrong");
       }
@@ -71,6 +83,8 @@ export default function App() {
       sendMessage();
     }
   };
+
+  const clearChat = () => setMessages([]);
 
   return (
     <div style={styles.dashboard}>
@@ -96,10 +110,12 @@ export default function App() {
           <div style={styles.chatBox}>
             {messages.map((m, i) => (
               <div key={i} style={m.role === "user" ? styles.userMsg : styles.botMsg}>
-                <b>{m.role === "user" ? "You" : "Twin Health"}:</b> {m.content}
+                <b>{m.role === "user" ? "You" : "Twin Health"}:</b> {m.content}{" "}
+                <span style={styles.timestamp}>{m.time}</span>
               </div>
             ))}
             {loading && <div style={styles.loading}>Typing...</div>}
+            <div ref={chatEndRef}></div>
           </div>
 
           {error && <div style={styles.error}>{error}</div>}
@@ -120,6 +136,9 @@ export default function App() {
               style={{ ...styles.button, backgroundColor: listening ? "#16a34a" : "#1e3a8a" }}
             >
               {listening ? "Listening..." : "🎤"}
+            </button>
+            <button onClick={clearChat} style={{ ...styles.button, backgroundColor: "#ef4444" }}>
+              Clear
             </button>
           </div>
         </main>
@@ -185,6 +204,11 @@ const styles = {
     borderRadius: 12,
     display: "inline-block",
     maxWidth: "80%",
+  },
+  timestamp: {
+    fontSize: 10,
+    color: "#6b7280",
+    marginLeft: 6,
   },
   loading: {
     fontStyle: "italic",
