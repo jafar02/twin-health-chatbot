@@ -1,0 +1,5 @@
+# Treat all text files normally
+* text=auto
+
+# Ignore node_modules entirely
+node_modules/* -text
