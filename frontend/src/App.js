@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
+// Get backend URL from environment variable
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:10000";
+
 export default function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -28,7 +31,7 @@ export default function App() {
     setInput("");
 
     try {
-      const res = await fetch("/chat", {
+      const res = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
@@ -36,7 +39,8 @@ export default function App() {
 
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "bot", text: data.reply }]);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setMessages((prev) => [
         ...prev,
         { role: "bot", text: "Server error. Try again later." },
@@ -48,14 +52,6 @@ export default function App() {
     <div style={styles.app}>
       {/* HEADER */}
       <header style={styles.header}>Twin Health AI</header>
-
-      {/* DASHBOARD */}
-      <div style={styles.dashboard}>
-        <div style={styles.card}>💬 Chat</div>
-        <div style={styles.card}>🥗 Nutrition</div>
-        <div style={styles.card}>💪 Fitness</div>
-        <div style={styles.card}>📊 Reports</div>
-      </div>
 
       {/* CHAT AREA */}
       <div style={styles.main}>
@@ -97,7 +93,6 @@ export default function App() {
 }
 
 /* ================= STYLES ================= */
-
 const styles = {
   app: {
     height: "100vh",
@@ -113,22 +108,6 @@ const styles = {
     color: "#fff",
     fontSize: "20px",
     fontWeight: "600",
-  },
-
-  dashboard: {
-    display: "flex",
-    gap: "12px",
-    padding: "10px",
-    background: "#ffffff",
-    borderBottom: "1px solid #ddd",
-  },
-
-  card: {
-    padding: "10px 16px",
-    background: "#eef2ff",
-    borderRadius: "8px",
-    fontWeight: 600,
-    cursor: "pointer",
   },
 
   main: {
