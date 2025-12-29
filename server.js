@@ -1,12 +1,12 @@
 // -----------------------------
-// server.js
+// server.js (CommonJS / JavaScript)
 // -----------------------------
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import path from "path";
-import OpenAI from "openai";
-import { fileURLToPath } from "url";
+
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const path = require("path");
+const OpenAI = require("openai");
 
 // -----------------------------
 // Load environment variables
@@ -22,10 +22,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Adjust this path to match your frontend build folder
+// Path to React build folder
 const FRONTEND_DIR = path.join(__dirname, "frontend", "build");
 
 // -----------------------------
